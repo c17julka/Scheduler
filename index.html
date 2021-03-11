@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body onload="loadContent();">
+    <div id="all">
+
+        <div id="content">
+            <div id="timeline">
+                <h1>Timeline</h1>
+                <table id="tab">
+
+                </table>
+
+                <div id="addtaskdiv">
+                    <select name="addtask" class="inp" id="addtask">
+                    
+                    </select>
+                    <input type="text" name="taskname" placeholder="Type task..." class="inp type" id="typetask">
+                    <input type="button" name="btn" id="taskbtn" class="btn" value="Add task" onclick="btnPush()">
+                </div>
+                
+            </div>
+            <div id="deadline">
+                <h1>Deadlines</h1>
+                <ul id="deadlinelist">
+                    
+                </ul>
+                <div>
+                    
+                </div>
+                <input type="date" name="deadD" class="inp type" id="deadDate">
+                <input type="text" name="deadname" placeholder="Type deadline..." class="inp type" id="typedead">
+                <input type="button" name="btn" id="deadbtn" class="btn" value="Add deadline" onclick="deadL()">
+            </div>
+            <!-- <div id="goals">
+                <h1>Goals</h1>
+
+                <ul>
+                    <li>Coffee</li>
+                    <li>Tea</li>
+                    <li>Milk</li>
+                </ul>
+
+                <input type="text" name="goalname" placeholder="Type goal..." class="inp type" id="typegoal">
+                <input type="button" name="btn" id="goalbtn" class="btn" value="Add goal">
+
+            </div> -->
+        </div>
+    </div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
