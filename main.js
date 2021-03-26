@@ -1,3 +1,4 @@
+// Secret key and bin IDs from jsonbin
 const key = "";
 const tdBin = "";
 const tmrwBin = "";
@@ -41,6 +42,7 @@ function fillTimeline() {
 
     readrequest.onreadystatechange = () => {
         if (readrequest.readyState == XMLHttpRequest.DONE) {
+
 
             let filling = JSON.parse(readrequest.responseText);
 
@@ -129,8 +131,6 @@ function fillTimeline() {
             }
         };
     
-
-    //TODO: Fetch+format times+tasks to a new JSON, update JSON when task had been added. Fill JSON, always check JSON when loading site, update JSON when adding task.
     }
 }
 
@@ -177,6 +177,10 @@ function btnPush() {
 
                 }
                 else {
+                    btnval.value = "Failed adding task";
+                        setTimeout(function() {
+                            btnval.value = "Add task"; 
+                        }, 2000);
                 }
                 
             }
@@ -257,7 +261,10 @@ function deadL() {
                 }
             }
             else {
-
+                btnval.value = "Failed adding deadline";
+                    setTimeout(function() {
+                        btnval.value = "Add deadline"; 
+                    }, 2000);
             }
                     
         }
