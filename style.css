@@ -75,7 +75,24 @@ ul {
 }
 
 li {
-    padding: 0em 1em 0em 1em;
+    padding: 0em 1em 1em 1em;
+    position: relative;
+}
+
+li.tday {
+    color: blue;
+}
+
+li.late {
+    color: red;
+}
+
+.btn.remove {
+    width: 25px;
+    padding:0px 5px;
+    margin-top: 4px;
+    position: absolute;
+    bottom: 4px;
 }
 
 select {

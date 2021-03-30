@@ -1,9 +1,9 @@
 // Secret key and bin IDs from jsonbin
 const key = "";
-const tdBin = "";
-const tmrwBin = "";
-const Dbin = "";
+const taskBin = "";
+const deadLBin = "";
 
+// Loads bg img and then content after request is done
 function loadContent() {
     const request = new XMLHttpRequest();
     request.open('GET', "https://picsum.photos/2000/1800/?blur");
@@ -22,6 +22,7 @@ function loadContent() {
 
 }
 
+// Fills the timeline with content
 function fillTimeline() {
     let table = [];
     const hours = 24;
@@ -31,10 +32,11 @@ function fillTimeline() {
 
     const readrequest = new XMLHttpRequest();
 
-    readrequest.open("GET", "https://api.jsonbin.io/b/"+tdBin+"/latest", true);
+    readrequest.open("GET", "https://api.jsonbin.io/b/"+taskBin+"/latest", true);
     readrequest.setRequestHeader("secret-key", key);
     readrequest.send();
 
+    // Fetches today's date to compare it with the date in JSON file
     let today = new Date().toLocaleDateString(undefined).toString();
     let d = {};
     d.date = today;
@@ -46,25 +48,26 @@ function fillTimeline() {
 
             let filling = JSON.parse(readrequest.responseText);
 
-            if((readrequest.responseText || readrequest.responseText != "") && (filling[0].date == today))
+            // Fills timeline with JSON if there is data to be fetched from today's date
+            if((readrequest.responseText || readrequest.responseText != "") && filling.list && filling.list[0].date == today)
             {
                 document.getElementById("tab").innerHTML="";
                 document.getElementById("addtask").innerHTML="";
-                for (i=1;i<filling.length;i++)
+                for (i=1;i<filling.list.length;i++)
                 {
                     htmltable = `
                     <tr>
                         <td class="time">
-                        `+ filling[i].time +`
+                        `+ filling.list[i].time +`
                         </td>
                         <td class="task">
-                        `+ filling[i].task +`
+                        `+ filling.list[i].task +`
                         </td>
                     </tr>
                     `;
 
                     htmlselect = `
-                    <option value="`+filling[i].time+`">`+filling[i].time+`</option>
+                    <option value="`+filling.list[i].time+`">`+filling.list[i].time+`</option>
                     `
 
                     document.getElementById("tab").insertAdjacentHTML("beforeend", htmltable);
@@ -72,6 +75,7 @@ function fillTimeline() {
                 }
                 document.getElementById("timeline").style.opacity = 1;
             }
+            // else creates a new timeline and updates JSON with that data
             else {
 
                 for (i = 0; i < hours; i++) {
@@ -81,18 +85,23 @@ function fillTimeline() {
                     table.push(element);
                 }
 
+                const jsonfill = {
+                    "list": table
+                    
+                };
+
                 const jsrequest = new XMLHttpRequest();
 
-                jsrequest.open("PUT", "https://api.jsonbin.io/b/"+tdBin, true);
+                jsrequest.open("PUT", "https://api.jsonbin.io/b/"+taskBin, true);
                 jsrequest.setRequestHeader("Content-Type", "application/json");
                 jsrequest.setRequestHeader("secret-key", key);
-                jsrequest.send(JSON.stringify(table));
+                jsrequest.send(JSON.stringify(jsonfill));
 
                 jsrequest.onreadystatechange = () => {
                     if (jsrequest.readyState == XMLHttpRequest.DONE) {
 
                         const readrequest2 = new XMLHttpRequest();
-                        readrequest2.open("GET", "https://api.jsonbin.io/b/"+tdBin+"/latest", true);
+                        readrequest2.open("GET", "https://api.jsonbin.io/b/"+taskBin+"/latest", true);
                         readrequest2.setRequestHeader("secret-key", key);
                         readrequest2.send();
 
@@ -101,20 +110,20 @@ function fillTimeline() {
                             if (readrequest2.readyState == XMLHttpRequest.DONE) {
 
                                 let filling2 = JSON.parse(readrequest2.responseText);
-                                for (i=1;i<filling2.length;i++) {
+                                for (i=1;i<filling2.list.length;i++) {
                                     htmltable = `
                                     <tr>
                                         <td class="time">
-                                        `+ filling2[i].time +`
+                                        `+ filling2.list[i].time +`
                                         </td>
                                         <td class="task">
-                                        `+ filling2[i].task +`
+                                        `+ filling2.list[i].task +`
                                         </td>
                                     </tr>
                                     `;
 
                                     htmlselect = `
-                                    <option value="`+filling2[i].time+`">`+filling2[i].time+`</option>
+                                    <option value="`+filling2.list[i].time+`">`+filling2.list[i].time+`</option>
                                     `
 
                                     document.getElementById("tab").insertAdjacentHTML("beforeend", htmltable);
@@ -134,11 +143,12 @@ function fillTimeline() {
     }
 }
 
+// function that adds tasks in the timeline
 function btnPush() {
 
     const readreq = new XMLHttpRequest();
 
-    readreq.open("GET", "https://api.jsonbin.io/b/"+tdBin+"/latest", true);
+    readreq.open("GET", "https://api.jsonbin.io/b/"+taskBin+"/latest", true);
     readreq.setRequestHeader("secret-key", key);
     readreq.send();
 
@@ -149,38 +159,47 @@ function btnPush() {
             const textval = document.getElementById("typetask");
             const btnval = document.getElementById("taskbtn");
         
-            for (i=1;i < filling.length;i++) {
-                if ((filling[i].time == timeval.value) && textval.value != "") {
+            for (i=1;i < filling.list.length;i++) {
+                
+                // matches and adds task to correct time if task is defined
+                if ((filling.list[i].time == timeval.value)) {
+                    if (!textval.value == "" || !textval.value == undefined || !textval.value == null) {
+                        
+                        filling.list[i].task += " • " + textval.value;
+                        const jsrequest = new XMLHttpRequest();
+    
+                        jsrequest.open("PUT", "https://api.jsonbin.io/b/"+taskBin, true);
+                        jsrequest.setRequestHeader("Content-Type", "application/json");
+                        jsrequest.setRequestHeader("secret-key", key);
+                        jsrequest.send(JSON.stringify(filling));
+    
+                        jsrequest.onreadystatechange = () => {
+                            if (jsrequest.readyState == XMLHttpRequest.DONE) {
+                                btnval.value = "Task added!";
+                                setTimeout(function() {
+                                    btnval.value = "Add task"; 
+                                }, 2000);
+    
+                                fillTimeline();
+    
+                            }
+                        }
+                        
+    
+                        break;
+                    }
 
-                    filling[i].task += " • " + textval.value;
-                    const jsrequest = new XMLHttpRequest();
-
-                    jsrequest.open("PUT", "https://api.jsonbin.io/b/"+tdBin, true);
-                    jsrequest.setRequestHeader("Content-Type", "application/json");
-                    jsrequest.setRequestHeader("secret-key", key);
-                    jsrequest.send(JSON.stringify(filling));
-
-                    jsrequest.onreadystatechange = () => {
-                        if (jsrequest.readyState == XMLHttpRequest.DONE) {
-                            btnval.value = "Task added!";
+                    // error if task is not defined
+                    else {
+                        btnval.value = "Failed adding task";
                             setTimeout(function() {
                                 btnval.value = "Add task"; 
                             }, 2000);
-
-                            fillTimeline();
-
-                        }
                     }
-                    
-
-                    break;
 
                 }
                 else {
-                    btnval.value = "Failed adding task";
-                        setTimeout(function() {
-                            btnval.value = "Add task"; 
-                        }, 2000);
+                    
                 }
                 
             }
@@ -189,13 +208,17 @@ function btnPush() {
     }
 }
 
+// fills deadline with content
 function fillDeadL() {
 
     const jsrequest = new XMLHttpRequest();
 
     let htmllist = "";
 
-    jsrequest.open("GET", "https://api.jsonbin.io/b/"+Dbin+"/latest", true);
+    const today = new Date().toLocaleDateString(undefined).toString();
+    const differenceToday = Date.parse(today);
+
+    jsrequest.open("GET", "https://api.jsonbin.io/b/"+deadLBin+"/latest", true);
     jsrequest.setRequestHeader("secret-key", key);
     jsrequest.send();
 
@@ -203,15 +226,85 @@ function fillDeadL() {
         if (jsrequest.readyState == XMLHttpRequest.DONE) {
             let filling = JSON.parse(jsrequest.responseText);
 
+
             document.getElementById("deadlinelist").innerHTML="";
 
-            for (i=0;i<filling.list.length;i++) {
-                htmllist = `
-                    <li>`+filling.list[i].date+`: `+filling.list[i].line+`</li>
-                `;
+            if (jsrequest.responseText && filling.list) {
+                let deadlineArray = filling.list;
 
-                document.getElementById("deadlinelist").insertAdjacentHTML("beforeend", htmllist);
+                // sorts deadlines by date
+                deadlineArray.sort(function(a,b) {
+                    return new Date(b.date) - new Date(a.date);
+                });
+
+                // fills deadline 
+                for (i=0;i<filling.list.length;i++) {
+                    if (filling.list[i].date != "" && filling.list[i].line != "") {
+
+                        let deadlineDate = filling.list[i].date;
+                        const differenceDeadline = Date.parse(deadlineDate);
+
+                        // colour-sorts the deadlines depending on when their date is
+                        // date is in the past
+                        if (differenceToday > differenceDeadline) {
+                            htmllist = `
+                            <li class="late">`+filling.list[i].date+`: `+filling.list[i].line+`<button class="btn remove" onclick="deleteDeadL(this)">x</button></li>
+                            `;
+        
+                            document.getElementById("deadlinelist").insertAdjacentHTML("beforeend", htmllist);
+                        }
+                        // date is today
+                        else if (differenceToday == differenceDeadline) {
+                            htmllist = `
+                            <li class="tday">`+filling.list[i].date+`: `+filling.list[i].line+`<button class="btn remove" onclick="deleteDeadL(this)">x</button></li>
+                            `;
+        
+                            document.getElementById("deadlinelist").insertAdjacentHTML("beforeend", htmllist);
+                        }
+                        // date is not today / in the past AKA the futuuureeee
+                        else {
+                            htmllist = `
+                            <li>`+filling.list[i].date+`: `+filling.list[i].line+`<button class="btn remove" onclick="deleteDeadL(this)">x</button></li>
+                            `;
+        
+                            document.getElementById("deadlinelist").insertAdjacentHTML("beforeend", htmllist);
+                        }
+                        
+                    }
+                    else {
+
+                    }
+                    
+                }
             }
+            // sends JSON to JSONbin in correct format (first time)
+            else {
+                const fillEmptyJSON = new XMLHttpRequest();
+
+                fillEmptyJSON.open("PUT", "https://api.jsonbin.io/b/"+deadLBin, true);
+                fillEmptyJSON.setRequestHeader("Content-Type", "application/json");
+                fillEmptyJSON.setRequestHeader("secret-key", key);
+                
+                const jsonfill = {
+                    "list": [ {
+                        "date": "",
+                        "line":""
+                        }
+                         
+                    ]
+                    
+                };
+
+                fillEmptyJSON.send(JSON.stringify(jsonfill));
+
+                fillEmptyJSON.onreadystatechange = () => {
+                    if (fillEmptyJSON.readyState == XMLHttpRequest.DONE) {
+
+                    }
+                }
+            }
+
+            
             document.getElementById("deadline").style.opacity = 1;
             
         }
@@ -219,12 +312,12 @@ function fillDeadL() {
 
 }
 
+// adds deadline
 function deadL() {
-    const listing = [];
 
     const jsrequest = new XMLHttpRequest();
 
-    jsrequest.open("GET", "https://api.jsonbin.io/b/"+Dbin+"/latest", true);
+    jsrequest.open("GET", "https://api.jsonbin.io/b/"+deadLBin+"/latest", true);
     jsrequest.setRequestHeader("Content-Type", "application/json");
     jsrequest.setRequestHeader("secret-key", key);
     jsrequest.send();
@@ -237,15 +330,14 @@ function deadL() {
             const textval = document.getElementById("typedead");
             const btnval = document.getElementById("deadbtn");
 
+            // adds deadline if deadline is defined
             if (timeval.value != "" && timeval.value != undefined && textval.value != "" && textval.value != undefined)
             {
                 filling["list"].push({"date": timeval.value, "line": textval.value});
 
-                console.table(filling);
-
                 const jsrequest2 = new XMLHttpRequest();
 
-                jsrequest2.open("PUT", "https://api.jsonbin.io/b/"+Dbin, true);
+                jsrequest2.open("PUT", "https://api.jsonbin.io/b/"+deadLBin, true);
                 jsrequest2.setRequestHeader("Content-Type", "application/json");
                 jsrequest2.setRequestHeader("secret-key", key);
                 jsrequest2.send(JSON.stringify(filling));
@@ -267,6 +359,66 @@ function deadL() {
                     }, 2000);
             }
                     
+        }
+    }
+
+}
+
+// remove deadline from deadline list
+function deleteDeadL(obj) {
+
+    const content = obj.parentElement.innerHTML;
+
+    // creates substrings
+    const date = content.substring(0, 10);
+    const deadL = content.substring(content.lastIndexOf(date) + date.length + 2, content.lastIndexOf(`<button class="btn remove" onclick="deleteDeadL(this)">x</button>`));
+
+    // loading symbol
+    obj.innerHTML = "⅁";
+    
+    const getdeadL = new XMLHttpRequest();
+
+    getdeadL.open("GET", "https://api.jsonbin.io/b/"+deadLBin+"/latest", true);
+    getdeadL.setRequestHeader("Content-Type", "application/json");
+    getdeadL.setRequestHeader("secret-key", key);
+    getdeadL.send();
+
+    getdeadL.onreadystatechange = () => {
+        if (getdeadL.readyState == XMLHttpRequest.DONE) {
+
+            let filling = JSON.parse(getdeadL.responseText);
+
+            for (i=0; i<filling.list.length; i++) {
+
+                // removes deadline, sends new JSON to JSONbin, updates deadline list
+                if (filling.list[i].date == date && filling.list[i].line == deadL) {
+
+                    filling.list.splice(i, 1);
+
+                    const updDeadL = new XMLHttpRequest();
+
+                    updDeadL.open("PUT", "https://api.jsonbin.io/b/"+deadLBin, true);
+                    updDeadL.setRequestHeader("Content-Type", "application/json");
+                    updDeadL.setRequestHeader("secret-key", key);
+                    updDeadL.send(JSON.stringify(filling));
+
+                    updDeadL.onreadystatechange = () => {
+                        if (updDeadL.readyState == XMLHttpRequest.DONE) {
+                            fillDeadL();
+                        }
+                    }
+
+                    updDeadL.ontimeout = () => {
+                        obj.innerHTML = "x";
+                    }
+
+                    break; // only removes 1 deadline
+                }
+                else {
+                    
+                }
+                
+            }
         }
     }
 
