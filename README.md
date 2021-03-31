@@ -1,5 +1,7 @@
 # Scheduler
 This is a scheduler including a task list and a deadline list. It was made in inspiration to those physical copies of daily task schedulers. Therefore, the elements represent paper to create that "real-life"-scheduler feel.
+
+![Scheduler image](https://i.imgur.com/zi1OBcw.png "What Scheduler looks like")
 ## How to use
 1. Download the scheduler code (duh!)
 2. Extract it to your desired folder
